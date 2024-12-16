@@ -10,7 +10,7 @@ L.tileLayer(`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey
     maxZoom: 20,
 }).addTo(map);
 
-// Add a marker with popup
+// Add a marker with po pup
 const marker = L.marker([37.7749, -122.4194]).addTo(map)
     .bindPopup("<b>Welcome to San Francisco!</b><br>Geoapify map example.")
     .openPopup();
@@ -22,3 +22,12 @@ const marker = L.marker([37.7749, -122.4194]).addTo(map)
             .bindPopup(`You clicked at<br>Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`)
             .openPopup();
     });
+
+    var requestOptions = {
+        method: 'GET',
+      };
+      
+      fetch("https://api.geoapify.com/v1/ipinfo?&apiKey=161de40590c6496abb7d48bf9cfbdb79", requestOptions)
+        .then(response => response.json())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
