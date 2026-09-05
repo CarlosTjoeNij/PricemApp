@@ -14,23 +14,49 @@ L.tileLayer(`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey
     maxZoom: 20,
 }).addTo(map);
 
-// Fetch user's location using Geoapify IP info API
-fetch(`https://api.geoapify.com/v1/ipinfo?apiKey=${apiKey}`, {
-    method: 'GET',
-})
-    .then(response => response.json())
-    .then(result => {
-        // Extract the latitude and longitude from the response
-        const { latitude, longitude } = result.location;
+// Red "You" marker so the user's own location stands out from hotel pins
+const youIcon = L.icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+    className: 'you-marker-icon',
+});
 
-        // Center the map on the user's location
-        map.setView([latitude, longitude], 12);
+function showUserLocation(latitude, longitude) {
+    map.setView([latitude, longitude], 14);
 
-        // Add a marker for the user's location
-        L.marker([latitude, longitude]).addTo(map)
-            .openPopup();
+    L.marker([latitude, longitude], { icon: youIcon }).addTo(map)
+        .bindTooltip('You', { permanent: true, direction: 'top', offset: [0, -38] })
+        .openTooltip();
+}
+
+// Fall back to Geoapify's IP-based lookup (city-level accuracy) when the
+// browser's own, much more precise Geolocation API isn't available or is denied
+function locateByIp() {
+    fetch(`https://api.geoapify.com/v1/ipinfo?apiKey=${apiKey}`, {
+        method: 'GET',
     })
-    .catch(error => console.error('Error fetching IP location:', error));
+        .then(response => response.json())
+        .then(result => {
+            const { latitude, longitude } = result.location;
+            showUserLocation(latitude, longitude);
+        })
+        .catch(error => console.error('Error fetching IP location:', error));
+}
+
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        position => showUserLocation(position.coords.latitude, position.coords.longitude),
+        () => locateByIp(),
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+} else {
+    locateByIp();
+}
 
 // Layer group so a new hotel search clears the previous markers
 const hotelsLayer = L.featureGroup().addTo(map);
