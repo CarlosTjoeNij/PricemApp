@@ -20,7 +20,7 @@ html, body {
 body {
     display: flex;
     flex-direction: column;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
     background: var(--color-black);
     color: var(--color-white);
 }
@@ -86,6 +86,18 @@ body {
     transform: translateY(-1px);
 }
 
+.navbar a.active {
+    background: var(--color-white);
+    color: var(--color-purple-dark);
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.navbar a.active:hover {
+    background: linear-gradient(135deg, var(--color-orange), var(--color-amber));
+    color: var(--color-black);
+}
+
 .navbar a:active {
     transform: translateY(0);
 }
@@ -95,6 +107,7 @@ body {
 #map {
     flex: 1;
     width: 100%;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
 }
 
 /* Leaflet zoom control */
@@ -158,7 +171,6 @@ body {
     margin-top: 8px;
     padding: 8px 14px;
     background: linear-gradient(135deg, var(--color-orange), var(--color-amber));
-    color: var(--color-white);
     font-weight: 700;
     font-size: 0.85rem;
     text-decoration: none;
@@ -169,4 +181,47 @@ body {
 .popup-cta:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 14px rgba(255, 121, 0, 0.45);
+}
+
+/* Leaflet's own ".leaflet-container a" rule outranks a plain ".popup-cta"
+   class selector, so this needs the extra "a" to win the specificity tie */
+.leaflet-container a.popup-cta,
+.popup-cta {
+    color: var(--color-white);
+}
+
+.popup-rating {
+    color: var(--color-orange);
+    font-weight: 700;
+}
+
+.popup-rating-count {
+    opacity: 0.6;
+    font-size: 0.85rem;
+}
+
+.leaflet-container a.popup-link {
+    color: var(--color-purple-dark);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.popup-link:hover {
+    text-decoration: underline;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 2px;
+}
+
+.status-dot-open {
+    background: #2ecc71;
+}
+
+.status-dot-closed {
+    background: #e63946;
 }

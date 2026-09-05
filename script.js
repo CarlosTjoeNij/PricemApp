@@ -4,7 +4,7 @@ const apiKey = "8155b35e4cef4b79bff7bbfa39470eac";
 // Apify dataset of hotels in the Netherlands (scraped from Google Maps).
 // The dataset's access level is set to "anyone with the ID can read", so no
 // Apify token is exposed client-side
-const hotelsDatasetUrl = "https://api.apify.com/v2/datasets/RVui8jn05k2d5hF7U/items?fields=title,address,website,location,imageUrl";
+const hotelsDatasetUrl = "https://api.apify.com/v2/datasets/RVui8jn05k2d5hF7U/items?fields=title,address,website,location,imageUrl,totalScore,reviewsCount,phone,price";
 
 // Initialize the map with default coordinates (before getting the user's location)
 const map = L.map('map').setView([0, 0], 2); // Start with a world view
@@ -69,6 +69,18 @@ if (navigator.geolocation) {
 // Layer group so a new hotel search clears the previous markers
 const hotelsLayer = L.featureGroup().addTo(map);
 
+// The dataset's price is USD, scraped from Google's own "from $X" estimate for
+// a specific date, so it's already just an indication - convert to euros too
+const usdToEurRate = 0.86;
+
+function formatPriceIndication(priceString) {
+    const usd = parseFloat(priceString.replace(/[^0-9.]/g, ''));
+    if (!usd) return '';
+
+    const eur = Math.round(usd * usdToEurRate);
+    return `<br>Prijsindicatie: &euro;${eur} per nacht`;
+}
+
 function loadHotels() {
     hotelsLayer.clearLayers();
 
@@ -86,27 +98,38 @@ function loadHotels() {
 
                 const name = hotel.title || 'Hotel';
                 const address = hotel.address || 'Address unknown';
-                const websiteLink = hotel.website
-                    ? `<br><a href="${hotel.website}" target="_blank" rel="noopener" class="popup-cta">Boek hier bij hotel</a>`
+                const rating = (hotel.totalScore && hotel.reviewsCount)
+                    ? `<br><span class="popup-rating">&#9733; ${hotel.totalScore}</span> <span class="popup-rating-count">(${hotel.reviewsCount} reviews)</span>`
                     : '';
                 const photo = hotel.imageUrl
                     ? `<br><img src="${hotel.imageUrl}" alt="${name}" class="hotel-popup-photo" onerror="this.remove()">`
                     : '';
+                const price = hotel.price ? formatPriceIndication(hotel.price) : '';
+                const phone = hotel.phone
+                    ? `<br><a href="tel:${hotel.phone}" class="popup-link">${hotel.phone}</a>`
+                    : '';
+                const websiteLink = hotel.website
+                    ? `<br><a href="${hotel.website}" target="_blank" rel="noopener" class="popup-cta">Boek hier bij hotel</a>`
+                    : '';
 
                 L.marker([lat, lng], { icon: hotelIcon })
-                    .bindPopup(`<strong>${name}</strong>${photo}<br>${address}${websiteLink}`)
+                    .bindPopup(`<strong>${name}</strong>${rating}${photo}<br>${address}${phone}${price}${websiteLink}`)
                     .addTo(hotelsLayer);
             });
-
-            if (hotels.length > 0) {
-                map.fitBounds(hotelsLayer.getBounds());
-            }
         })
         .catch(error => console.error('Error fetching hotels:', error));
 }
 
+function setActiveNavLink(activeLink) {
+    document.querySelectorAll('.navbar a').forEach(link => link.classList.remove('active'));
+    activeLink.classList.add('active');
+}
+
 document.getElementById('hotels-link').addEventListener('click', event => {
     event.preventDefault();
+    setActiveNavLink(event.currentTarget);
+    chargingStationsActive = false;
+    chargingLayer.clearLayers();
     loadHotels();
 });
 
@@ -139,7 +162,7 @@ function describeAvailability(availabilities) {
     if (!availabilities || availabilities.length === 0) return '';
 
     return availabilities
-        .map(a => `${a.connector_type}: ${a.available}/${a.total} beschikbaar`)
+        .map(a => `<span class="popup-cta">${a.available}/${a.total} beschikbaar</span>`)
         .join('<br>');
 }
 
@@ -156,10 +179,11 @@ function loadChargingStations() {
                 const props = feature.properties;
                 const name = props.operator_name || 'Laadpaal';
                 const status = props.open ? 'Open' : 'Gesloten';
+                const statusDot = `<span class="status-dot ${props.open ? 'status-dot-open' : 'status-dot-closed'}"></span>`;
                 const availability = describeAvailability(props.availabilities);
 
                 L.marker([lat, lng], { icon: chargingIcon })
-                    .bindPopup(`<strong>${name}</strong><br>${props.address}<br>Status: ${status}<br>${availability}`)
+                    .bindPopup(`<strong>${name}</strong><br>${props.address}<br>Status: ${statusDot}${status}<br>${availability}`)
                     .addTo(chargingLayer);
             });
         })
@@ -168,6 +192,8 @@ function loadChargingStations() {
 
 document.getElementById('charging-link').addEventListener('click', event => {
     event.preventDefault();
+    setActiveNavLink(event.currentTarget);
+    hotelsLayer.clearLayers();
     chargingStationsActive = true;
     loadChargingStations();
 });
