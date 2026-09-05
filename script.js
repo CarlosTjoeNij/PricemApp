@@ -109,3 +109,71 @@ document.getElementById('hotels-link').addEventListener('click', event => {
     event.preventDefault();
     loadHotels();
 });
+
+// Cloudflare Worker that proxies the NDW charge-point GeoJSON API and adds
+// the CORS headers it doesn't send itself - see cloudflare-worker/README.md
+const chargingProxyUrl = 'https://ndw-charging-proxy.carlostjoenij.workers.dev';
+
+const chargingIcon = createPinIcon('#7b2cbf');
+const chargingLayer = L.featureGroup().addTo(map);
+let chargingStationsActive = false;
+
+// The NDW API caps requests to a 1 degree squared bounding box, which is
+// smaller than the whole of the Netherlands, so charging points are loaded
+// for the current map view rather than all at once like the hotels dataset
+function boundsToClampedBbox(bounds) {
+    const maxSpan = 1.0;
+    const center = bounds.getCenter();
+    const lonSpan = Math.min(bounds.getEast() - bounds.getWest(), maxSpan);
+    const latSpan = Math.min(bounds.getNorth() - bounds.getSouth(), maxSpan);
+
+    return [
+        center.lng - lonSpan / 2,
+        center.lat - latSpan / 2,
+        center.lng + lonSpan / 2,
+        center.lat + latSpan / 2,
+    ].join(',');
+}
+
+function describeAvailability(availabilities) {
+    if (!availabilities || availabilities.length === 0) return '';
+
+    return availabilities
+        .map(a => `${a.connector_type}: ${a.available}/${a.total} beschikbaar`)
+        .join('<br>');
+}
+
+function loadChargingStations() {
+    const bbox = boundsToClampedBbox(map.getBounds());
+
+    fetch(`${chargingProxyUrl}?bbox=${bbox}`)
+        .then(response => response.json())
+        .then(geojson => {
+            chargingLayer.clearLayers();
+
+            (geojson.features || []).forEach(feature => {
+                const [lng, lat] = feature.geometry.coordinates;
+                const props = feature.properties;
+                const name = props.operator_name || 'Laadpaal';
+                const status = props.open ? 'Open' : 'Gesloten';
+                const availability = describeAvailability(props.availabilities);
+
+                L.marker([lat, lng], { icon: chargingIcon })
+                    .bindPopup(`<strong>${name}</strong><br>${props.address}<br>Status: ${status}<br>${availability}`)
+                    .addTo(chargingLayer);
+            });
+        })
+        .catch(error => console.error('Error fetching charging stations:', error));
+}
+
+document.getElementById('charging-link').addEventListener('click', event => {
+    event.preventDefault();
+    chargingStationsActive = true;
+    loadChargingStations();
+});
+
+// Refresh charging points as the user pans/zooms, since they're loaded for
+// the current viewport rather than fetched once like the hotels dataset
+map.on('moveend', () => {
+    if (chargingStationsActive) loadChargingStations();
+});

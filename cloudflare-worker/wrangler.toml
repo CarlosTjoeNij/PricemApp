@@ -1,0 +1,3 @@
+name = "ndw-charging-proxy"
+main = "ndw-charging-proxy.js"
+compatibility_date = "2026-09-01"
