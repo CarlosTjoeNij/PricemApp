@@ -1,9 +1,10 @@
 // Your Geoapify API Key
 const apiKey = "8155b35e4cef4b79bff7bbfa39470eac";
 
-// Apify dataset of hotels in the Netherlands (scraped from Google Maps),
-// shared via its signed URL so no Apify token is exposed client-side
-const hotelsDatasetUrl = "https://api.apify.com/v2/datasets/qaDEuxTelSjRqQJWS/items?signature=MC4wLlBzNFYzOXF2NDZqcjc2a0FpalBs&fields=title,address,website,location,imageUrl";
+// Apify dataset of hotels in the Netherlands (scraped from Google Maps).
+// The dataset's access level is set to "anyone with the ID can read", so no
+// Apify token is exposed client-side
+const hotelsDatasetUrl = "https://api.apify.com/v2/datasets/RVui8jn05k2d5hF7U/items?fields=title,address,website,location,imageUrl";
 
 // Initialize the map with default coordinates (before getting the user's location)
 const map = L.map('map').setView([0, 0], 2); // Start with a world view
