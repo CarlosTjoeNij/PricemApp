@@ -3,29 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geoapify Map</title>
+    <title>PricemApp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-    <h1>
-        PricemApp
-    </h1>
+    <header class="app-header">
+        <a href="#" class="brand">Pricem<span>App</span></a>
 
-    <nav class="navbar">
-        <ul>
-            <li><a href="#" id="hotels-link">Hotels</a></li>
-            <li><a>Restaurants</a></li>
-            <li><a>Stores</a></li>
-            <li><a>Gas stations</a></li>
-            <li><a>Charging stations</a></li>
-            <li><a>B&B</a></li>
-        </ul>
+        <nav class="navbar">
+            <ul>
+                <li><a href="#" id="hotels-link">Hotels</a></li>
+                <li><a href="#">Restaurants</a></li>
+                <li><a href="#">Stores</a></li>
+                <li><a href="#">Gas stations</a></li>
+                <li><a href="#">Charging stations</a></li>
+                <li><a href="#">B&amp;B</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    </nav>
     <div id="map"></div>
     <script src="script.js"></script>
-    
 </body>
 </html>

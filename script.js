@@ -14,17 +14,24 @@ L.tileLayer(`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey
     maxZoom: 20,
 }).addTo(map);
 
-// Red "You" marker so the user's own location stands out from hotel pins
-const youIcon = L.icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-    className: 'you-marker-icon',
-});
+// Brand-colored pin icon (teardrop with a white core), used for both the
+// user's own location and the hotel markers so every pin matches the palette
+function createPinIcon(color) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41">
+        <path d="M12.5 0C5.6 0 0 5.6 0 12.5c0 9.4 12.5 28.5 12.5 28.5S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="${color}"/>
+        <circle cx="12.5" cy="12.5" r="5.5" fill="#ffffff"/>
+    </svg>`;
+
+    return L.icon({
+        iconUrl: `data:image/svg+xml;base64,${btoa(svg)}`,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+    });
+}
+
+const youIcon = createPinIcon('#240046');
+const hotelIcon = createPinIcon('#ff7900');
 
 function showUserLocation(latitude, longitude) {
     map.setView([latitude, longitude], 14);
@@ -79,13 +86,13 @@ function loadHotels() {
                 const name = hotel.title || 'Hotel';
                 const address = hotel.address || 'Address unknown';
                 const websiteLink = hotel.website
-                    ? `<br><a href="${hotel.website}" target="_blank" rel="noopener">Boek hier bij hotel</a>`
+                    ? `<br><a href="${hotel.website}" target="_blank" rel="noopener" class="popup-cta">Boek hier bij hotel</a>`
                     : '';
                 const photo = hotel.imageUrl
                     ? `<br><img src="${hotel.imageUrl}" alt="${name}" class="hotel-popup-photo" onerror="this.remove()">`
                     : '';
 
-                L.marker([lat, lng])
+                L.marker([lat, lng], { icon: hotelIcon })
                     .bindPopup(`<strong>${name}</strong>${photo}<br>${address}${websiteLink}`)
                     .addTo(hotelsLayer);
             });
