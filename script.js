@@ -3,7 +3,7 @@ const apiKey = "8155b35e4cef4b79bff7bbfa39470eac";
 
 // Apify dataset of hotels in the Netherlands (scraped from Google Maps),
 // shared via its signed URL so no Apify token is exposed client-side
-const hotelsDatasetUrl = "https://api.apify.com/v2/datasets/qaDEuxTelSjRqQJWS/items?signature=MC4wLlBzNFYzOXF2NDZqcjc2a0FpalBs&fields=title,address,website,location";
+const hotelsDatasetUrl = "https://api.apify.com/v2/datasets/qaDEuxTelSjRqQJWS/items?signature=MC4wLlBzNFYzOXF2NDZqcjc2a0FpalBs&fields=title,address,website,location,imageUrl";
 
 // Initialize the map with default coordinates (before getting the user's location)
 const map = L.map('map').setView([0, 0], 2); // Start with a world view
@@ -79,11 +79,14 @@ function loadHotels() {
                 const name = hotel.title || 'Hotel';
                 const address = hotel.address || 'Address unknown';
                 const websiteLink = hotel.website
-                    ? `<br><a href="${hotel.website}" target="_blank" rel="noopener">Website</a>`
+                    ? `<br><a href="${hotel.website}" target="_blank" rel="noopener">Boek hier bij hotel</a>`
+                    : '';
+                const photo = hotel.imageUrl
+                    ? `<br><img src="${hotel.imageUrl}" alt="${name}" class="hotel-popup-photo" onerror="this.remove()">`
                     : '';
 
                 L.marker([lat, lng])
-                    .bindPopup(`<strong>${name}</strong><br>${address}${websiteLink}`)
+                    .bindPopup(`<strong>${name}</strong>${photo}<br>${address}${websiteLink}`)
                     .addTo(hotelsLayer);
             });
 
